@@ -128,57 +128,6 @@
             font-size: 1rem;
             font-weight: 600;
             color: var(--secondary);
-            position: relative;
-        }
-
-        .user-tab .delete-user-btn {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: rgba(167, 111, 111, 0.8);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            line-height: 1;
-            padding: 0;
-        }
-
-        .user-tab:hover .delete-user-btn {
-            display: flex;
-        }
-
-        .user-tab .delete-user-btn:hover {
-            background: #8E5E5E;
-            transform: scale(1.1);
-        }
-
-        .add-user-btn {
-            padding: 15px 25px;
-            border: 2px dashed var(--accent);
-            background: transparent;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Noto Sans TC', sans-serif;
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--accent);
-            min-width: 120px;
-        }
-
-        .add-user-btn:hover {
-            background: var(--accent);
-            color: white;
-            border-style: solid;
-            transform: translateY(-2px);
         }
 
         .user-tab:hover {
@@ -821,142 +770,22 @@
                 const userTabsHTML = this.userList.map(user => `
                     <button class="user-tab ${user === this.currentUser ? 'active' : ''}" data-user="${user}">
                         ${this.capitalizeFirst(user)}
-                        ${this.userList.length > 1 ? `<span class="delete-user-btn" data-user="${user}">×</span>` : ''}
                     </button>
                 `).join('');
                 
-                // 創建用戶選單
-                const userMenuHTML = `
-                    <div class="user-menu">
-                        <button class="user-menu-btn" id="userMenuBtn">用戶管理</button>
-                        <div class="user-dropdown" id="userDropdown">
-                            ${this.userList.map(user => `
-                                <button class="user-dropdown-item" data-user="${user}">
-                                    ${this.capitalizeFirst(user)}
-                                </button>
-                            `).join('')}
-                            <div class="user-dropdown-divider"></div>
-                            <button class="user-dropdown-item user-dropdown-add" id="addUserDropdown">
-                                新增用戶
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
-                this.userTabsContainer.innerHTML = userTabsHTML + userMenuHTML;
-                
-                // 綁定用戶選單事件
-                const userMenuBtn = document.getElementById('userMenuBtn');
-                const userDropdown = document.getElementById('userDropdown');
-                
-                if (userMenuBtn && userDropdown) {
-                    userMenuBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        userDropdown.classList.toggle('active');
-                    });
-                    
-                    // 點擊其他地方關閉選單
-                    document.addEventListener('click', () => {
-                        userDropdown.classList.remove('active');
-                    });
-                    
-                    userDropdown.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                    });
-                }
-                
-                // 綁定選單中的用戶切換
-                const dropdownItems = document.querySelectorAll('.user-dropdown-item[data-user]');
-                dropdownItems.forEach(item => {
-                    item.addEventListener('click', () => {
-                        this.switchUser(item.dataset.user);
-                        userDropdown.classList.remove('active');
-                    });
-                });
-                
-                // 綁定新增用戶按鈕
-                const addUserDropdown = document.getElementById('addUserDropdown');
-                if (addUserDropdown) {
-                    addUserDropdown.addEventListener('click', () => {
-                        userDropdown.classList.remove('active');
-                        this.addUser();
-                    });
-                }
+                this.userTabsContainer.innerHTML = userTabsHTML;
                 
                 // 綁定用戶標籤點擊事件
                 const userTabs = this.userTabsContainer.querySelectorAll('.user-tab');
                 userTabs.forEach(tab => {
                     tab.addEventListener('click', (e) => {
-                        if (!e.target.classList.contains('delete-user-btn')) {
-                            this.switchUser(e.currentTarget.dataset.user);
-                        }
-                    });
-                });
-                
-                // 綁定刪除用戶按鈕事件
-                const deleteUserBtns = this.userTabsContainer.querySelectorAll('.delete-user-btn');
-                deleteUserBtns.forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        this.deleteUser(e.target.dataset.user);
+                        this.switchUser(e.currentTarget.dataset.user);
                     });
                 });
             }
 
             capitalizeFirst(str) {
                 return str.charAt(0).toUpperCase() + str.slice(1);
-            }
-
-            addUser() {
-                const username = prompt('請輸入新用戶名稱：');
-                if (!username) return;
-                
-                const normalizedUsername = username.trim().toLowerCase();
-                
-                if (this.userList.includes(normalizedUsername)) {
-                    alert('此用戶名稱已存在！');
-                    return;
-                }
-                
-                if (normalizedUsername.length === 0) {
-                    alert('用戶名稱不能為空！');
-                    return;
-                }
-                
-                this.userList.push(normalizedUsername);
-                this.allUserTodos[normalizedUsername] = [];
-                this.rewardAccounts[normalizedUsername] = 0;
-                this.saveUserList();
-                this.saveTodos();
-                this.saveRewardAccounts();
-                this.switchUser(normalizedUsername);
-                this.renderUserTabs();
-            }
-
-            deleteUser(username) {
-                if (this.userList.length === 1) {
-                    alert('至少要保留一個用戶！');
-                    return;
-                }
-                
-                if (!confirm(`確定要刪除用戶「${this.capitalizeFirst(username)}」及其所有待辦事項嗎？`)) {
-                    return;
-                }
-                
-                this.userList = this.userList.filter(u => u !== username);
-                delete this.allUserTodos[username];
-                delete this.rewardAccounts[username];
-                
-                if (this.currentUser === username) {
-                    this.currentUser = this.userList[0];
-                    localStorage.setItem('currentUser', this.currentUser);
-                }
-                
-                this.saveUserList();
-                this.saveTodos();
-                this.saveRewardAccounts();
-                this.renderUserTabs();
-                this.render();
             }
 
             switchUser(username) {
